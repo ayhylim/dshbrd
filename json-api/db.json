@@ -1,0 +1,30 @@
+{
+  "productList": [
+    {
+      "id": "1",
+      "productName": "1",
+      "category": "1",
+      "price": 1,
+      "stock": 1,
+      "quantityType": "kg"
+    },
+    {
+      "id": "2",
+      "productName": "2",
+      "category": "2",
+      "price": 2,
+      "stock": 2,
+      "quantityType": "pack"
+    },
+    {
+      "id": "3",
+      "productName": "3",
+      "category": "3",
+      "price": 3,
+      "stock": 3,
+      "quantityType": "roll"
+    }
+  ],
+  "orders": [],
+  "transactionLog": []
+}

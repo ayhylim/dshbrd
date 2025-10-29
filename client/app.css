@@ -1,0 +1,225 @@
+body::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+body::-webkit-scrollbar-track {
+    background: #888;
+}
+
+.bod {
+    background-color: #dee3e9;
+}
+
+.container-root {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container-root img {
+    width: 20rem;
+    height: auto;
+}
+
+.root {
+    display: block;
+    padding: 5rem 25rem;
+    background-color: #ffffff;
+    border-radius: 20px;
+    margin: 0 0 5rem 0;
+}
+
+.root-title {
+    display: flex;
+    justify-content: center;
+}
+
+/* From Uiverse.io by alexruix */
+.group {
+    display: flex;
+    line-height: 28px;
+    align-items: center;
+    position: relative;
+    max-width: 190px;
+}
+
+.input {
+    width: 100%;
+    height: 40px;
+    line-height: 28px;
+    padding: 0 1rem;
+    padding-left: 2.5rem;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    outline: none;
+    background-color: #f3f3f4;
+    color: #0d0c22;
+    transition: 0.3s ease;
+}
+
+.input::placeholder {
+    color: #9e9ea7;
+}
+
+.input:focus,
+input:hover {
+    outline: none;
+    border-color: rgba(234, 76, 137, 0.4);
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgb(234 76 137 / 10%);
+}
+
+.icon {
+    position: absolute;
+    left: 1rem;
+    fill: #9e9ea7;
+    width: 1rem;
+    height: 1rem;
+}
+
+/* INPUT STYLES */
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* From Uiverse.io by SelfMadeSystem ADD ORDER PRODUCTS BUTTON STYLES */
+.btn {
+    /* width: 1rem; */
+    margin: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn kbd {
+    margin: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.btn-primary {
+    background: linear-gradient(#1f5afe, #0f4cf5);
+    color: white;
+    box-shadow: inset 0pt 4pt 3pt -2pt #386fff, 0pt 4pt 5pt -3pt #0009;
+    border-bottom: 2pt solid #083acd;
+    transition: all 0.5s ease;
+}
+
+.btn-primary:hover {
+    border-bottom: 4pt solid #083acd;
+    translate: 0pt -1pt;
+}
+
+.btn-primary:active {
+    box-shadow: inset 0pt 4pt 3pt -2pt #386fff, 0pt 4pt 5pt -3pt #0000;
+    border-bottom: 1pt solid #083acd;
+    translate: 0pt 0pt;
+}
+
+.btn-primary kbd {
+    background-color: #3e6eff;
+    box-shadow: inset 0pt -3pt 3pt -2pt #1f54f0, inset 0pt 3pt 3pt -2pt #658dff, 0pt 2pt 2pt -2pt #0005,
+        0pt 0pt 0pt 2pt #0d47f0;
+}
+
+.btn-base {
+    background: #386fff;
+}
+
+/* From Uiverse.io by cssbuttons-io */
+.noselect {
+    width: 12rem;
+    height: 3.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    /* ... existing styles ... */
+    background: #e62222;
+
+    /* 👇 ADD THIS LINE */
+    position: relative;
+
+    border: none;
+    border-radius: 5px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.noselect,
+.noselect span {
+    transition: 200ms;
+}
+
+.noselect .text {
+    transform: translateX(35px);
+    color: white;
+    font-weight: bold;
+}
+
+.noselect .icon {
+    position: absolute;
+    border-left: 1px solid #c41b1b;
+    transform: translateX(110px);
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.noselect svg {
+    width: 15px;
+    fill: #eee;
+}
+
+.noselect:hover {
+    background: #ff3636;
+}
+
+.noselect:hover .text {
+    color: transparent;
+}
+
+.noselect:hover .icon {
+    width: 150px;
+    border-left: none;
+    transform: translateX(0);
+}
+
+.noselect:focus {
+    outline: none;
+}
+
+.noselect:active .icon svg {
+    transform: scale(0.8);
+}
+
+.MuiInputBase-root .MuiOutlinedInput-input {
+    /* Menghilangkan semua border bawaan yang mungkin tersisa */
+    border: none !important;
+    box-shadow: none !important;
+    /* Memastikan background-nya solid agar tidak bocor */
+    background-color: transparent !important;
+}
+
+/* Jika Anda memiliki warna background yang aneh, coba juga ini: */
+.MuiInputBase-root {
+    background-color: transparent !important;
+}
+
+/* Pastikan elemen fokus yang Anda atur tetap bekerja */
+.MuiInputBase-root.Mui-focused {
+    box-shadow: none !important;
+}
