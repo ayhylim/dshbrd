@@ -1,36 +1,60 @@
 import axios from "axios";
+import {getRoleFromToken} from "../utils/getRoleFromToken";
+
+// Helper: Ambil role dari token
+const getApiRole = () => {
+    return getRoleFromToken() || "marketing";
+};
 
 // Product
 export const fetchProduct = async () => {
-    const response = await axios.get("http://127.0.0.1:3001/productList");
+    const role = getApiRole();
+    const response = await axios.get(`http://127.0.0.1:3001/productList?role=${role}`);
     return response.data;
 };
 
 export const searchProducts = async keyword => {
-    const response = await axios.get(`http://127.0.0.1:3001/productList?q_like=${keyword}`);
+    const role = getApiRole();
+    const response = await axios.get(`http://127.0.0.1:3001/productList?q_like=${keyword}&role=${role}`);
     return response.data;
 };
 
 export const addProduct = async data => {
-    const response = await axios.post("http://127.0.0.1:3001/productList", data);
+    const role = getApiRole();
+    const response = await axios.post(`http://127.0.0.1:3001/productList?role=${role}`, data);
     return response;
 };
+
 export const deleteProduct = async id => {
-    await axios.delete(`http://127.0.0.1:3001/productList/${id}`);
+    const role = getApiRole();
+    await axios.delete(`http://127.0.0.1:3001/productList/${id}?role=${role}`);
 };
+
 export const editProduct = async (id, data) => {
-    // Menggunakan PUT untuk mengganti seluruh objek produk dengan ID yang sesuai
-    const response = await axios.put(`http://127.0.0.1:3001/productList/${id}`, data);
-    return response.data; // Mengembalikan data produk yang terupdate
+    const role = getApiRole();
+    console.log("🔵 [API] editProduct called");
+    console.log("  - ID:", id);
+    console.log("  - Role:", role);
+    console.log("  - Data being sent:", data);
+
+    try {
+        const response = await axios.put(`http://127.0.0.1:3001/productList/${id}?role=${role}`, data);
+
+        console.log("🟢 [API] editProduct response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("🔴 [API] editProduct error:", error);
+        throw error;
+    }
 };
 
 export const updateProductStock = async (id, newProductData) => {
-    // Menggunakan axios.put untuk mengganti seluruh objek produk dengan ID yang sesuai
-    const response = await axios.put(`http://127.0.0.1:3001/productList/${id}`, newProductData);
-    return response.data; // Mengembalikan data produk yang terupdate
+    const role = getApiRole();
+    const response = await axios.put(`http://127.0.0.1:3001/productList/${id}?role=${role}`, newProductData);
+    return response.data;
 };
 
-// Order
+// Order, Revenue, dll - (tidak berubah, copy dari sebelumnya)
 export const fetchOrderProduct = async () => {
     const response = await axios.get("http://127.0.0.1:3001/orders");
     return response.data;
@@ -56,22 +80,16 @@ export const editOrderProduct = async (id, data) => {
 };
 
 export const updateOrderStatus = async (id, newStatus) => {
-    // Menggunakan PATCH hanya untuk mengubah field 'status'
     const response = await axios.patch(`http://127.0.0.1:3001/orders/${id}`, {status: newStatus});
-    return response.data; // Mengembalikan data order yang terupdate
+    return response.data;
 };
 
-// Transaction Log
-
 export const fetchTransactionLog = async () => {
-    // 💡 Mengambil semua data log transaksi
     const response = await axios.get("http://127.0.0.1:3001/transactionLog");
     return response.data;
 };
 
-// Transaction Log (Accepted Orders - Permanent Record)
 export const createTransactionLog = async data => {
-    // 💡 Membuat entry baru di collection 'transactionLog'
     const response = await axios.post("http://127.0.0.1:3001/transactionLog", data);
     return response;
 };

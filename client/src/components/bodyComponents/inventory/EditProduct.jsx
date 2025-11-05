@@ -1,24 +1,15 @@
-// #EditProduct.jsx
-
 import {Box, Button, TextField, Stack, Typography} from "@mui/material";
 import {useState, useContext, useCallback, useEffect} from "react";
 import ProductContext from "./context/ProductContext";
 import {editProduct} from "../../../api/api";
+import axios from "axios";
 
-// HELPER FUNCTION: Format Angka menjadi Rupiah (sama seperti di AddProduct)
-const formatRupiah = numberString => {
-    const rawValue = String(numberString).replace(/\D/g, "");
-    if (!rawValue) return "";
-    return new Intl.NumberFormat("id-ID").format(Number(rawValue));
-};
-
-// HELPER FUNCTION: Menangani perubahan input biasa (sama seperti di AddProduct)
 const useInputHandler = (product, setProduct) => {
     return useCallback(
         e => {
             const {name, value} = e.target;
 
-            if (name === "price" || name === "stock") {
+            if (name === "stock") {
                 const rawValue = value.replace(/\D/g, "");
                 setProduct(prev => ({
                     ...prev,
@@ -35,63 +26,110 @@ const useInputHandler = (product, setProduct) => {
     );
 };
 
-// ------------------- KOMPONEN UTAMA -------------------
-// Menerima productToEdit dari Products.jsx
 export default function EditProduct({productToEdit, onClose}) {
-    // State untuk form: Diinisialisasi dengan data produk yang akan diedit
     const [editedProduct, setEditedProduct] = useState({
         id: "",
         productName: "",
         category: "",
-        price: "",
-        stock: ""
+        stock: "",
+        quantityType: "",
+        price: 0,
+        hargaModal: 0
     });
 
-    // Ambil setProduct dari context untuk update state produk global
+    const [isLoading, setIsLoading] = useState(false);
     const {setProduct} = useContext(ProductContext);
 
-    // Isi state saat komponen pertama kali dimuat atau productToEdit berubah
+    // 🟢 FETCH FULL DATA from backend when modal opens
     useEffect(() => {
         if (productToEdit) {
-            setEditedProduct({
-                // Pastikan price dan stock di-cast ke string jika disimpan sebagai number di state global
-                id: productToEdit.id || "",
-                productName: productToEdit.productName || "",
-                category: productToEdit.category || "",
-                price: String(productToEdit.price || 0),
-                stock: String(productToEdit.stock || 0)
-            });
+            console.log("🔄 [EditProduct] Fetching FULL data from backend for product:", productToEdit.id);
+
+            // Fetch dari backend untuk pastikan data lengkap
+            axios
+                .get(`http://127.0.0.1:3001/productList`)
+                .then(response => {
+                    const fullProduct = response.data.find(p => p.id === productToEdit.id);
+
+                    if (fullProduct) {
+                        console.log("✅ [EditProduct] FULL data received from backend:", fullProduct);
+
+                        setEditedProduct({
+                            id: fullProduct.id || "",
+                            productName: fullProduct.productName || "",
+                            category: fullProduct.category || "",
+                            stock: String(fullProduct.stock || 0),
+                            quantityType: fullProduct.quantityType || "",
+                            price: fullProduct.price || 0,
+                            hargaModal: fullProduct.hargaModal || 0
+                        });
+                    } else {
+                        console.warn("⚠️ [EditProduct] Product not found in backend, using UI data");
+                        setEditedProduct({
+                            id: productToEdit.id || "",
+                            productName: productToEdit.productName || "",
+                            category: productToEdit.category || "",
+                            stock: String(productToEdit.stock || 0),
+                            quantityType: productToEdit.quantityType || "",
+                            price: productToEdit.price || 0,
+                            hargaModal: productToEdit.hargaModal || 0
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ [EditProduct] Error fetching data:", error);
+                    // Fallback ke UI data
+                    setEditedProduct({
+                        id: productToEdit.id || "",
+                        productName: productToEdit.productName || "",
+                        category: productToEdit.category || "",
+                        stock: String(productToEdit.stock || 0),
+                        quantityType: productToEdit.quantityType || "",
+                        price: productToEdit.price || 0,
+                        hargaModal: productToEdit.hargaModal || 0
+                    });
+                });
         }
     }, [productToEdit]);
 
-    // Menggunakan custom hook/helper untuk input
     const handleInput = useInputHandler(editedProduct, setEditedProduct);
 
     const handleSubmit = async e => {
         e.preventDefault();
+        setIsLoading(true);
 
-        if (!productToEdit || !productToEdit.id) return;
+        if (!productToEdit || !productToEdit.id) {
+            setIsLoading(false);
+            return;
+        }
 
-        // 🚨 FINALISASI DATA SEBELUM SUBMIT
+        // 🟢 SEND FULL DATA (warehouse update only warehouse fields, but send everything)
         const finalProduct = {
-            ...editedProduct,
-            // Konversi nilai string murni menjadi Number
-            price: Number(editedProduct.price || 0),
-            stock: Number(editedProduct.stock || 0)
+            id: editedProduct.id,
+            productName: editedProduct.productName,
+            category: editedProduct.category,
+            stock: Number(editedProduct.stock || 0),
+            quantityType: editedProduct.quantityType,
+            price: editedProduct.price, // 🟢 Preserve price from backend
+            hargaModal: editedProduct.hargaModal // 🟢 Preserve hargaModal from backend
         };
 
+        console.log("📤 [EditProduct] Sending FULL data:", finalProduct);
+
         try {
-            // Panggil API editProduct (PUT request)
             const updatedProduct = await editProduct(productToEdit.id, finalProduct);
 
-            // Update state produk global di ProductContext
+            console.log("✅ [EditProduct] Updated product from backend:", updatedProduct);
+
             setProduct(prev => prev.map(p => (p.id === productToEdit.id ? updatedProduct : p)));
 
             alert(`Produk ${updatedProduct.productName} berhasil diperbarui!`);
-            onClose(); // Tutup modal
+            onClose();
         } catch (err) {
-            console.error("Gagal mengedit produk:", err);
+            console.error("❌ [EditProduct] Error:", err);
             alert("Terjadi error saat memperbarui produk.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -115,7 +153,6 @@ export default function EditProduct({productToEdit, onClose}) {
 
             <Box component="form" onSubmit={handleSubmit} autoComplete="off">
                 <Stack spacing={3}>
-                    {/* ID (Biasanya ID tidak boleh diubah, jadi buat readOnly) */}
                     <TextField
                         required
                         fullWidth
@@ -127,7 +164,6 @@ export default function EditProduct({productToEdit, onClose}) {
                         InputProps={{readOnly: true}}
                     />
 
-                    {/* Name, Category menggunakan handleInput */}
                     <TextField
                         required
                         fullWidth
@@ -150,21 +186,6 @@ export default function EditProduct({productToEdit, onClose}) {
                     />
 
                     <Stack direction="row" spacing={2}>
-                        {/* Price */}
-                        <TextField
-                            required
-                            fullWidth
-                            id="price"
-                            name="price"
-                            label="Price (Rp)"
-                            variant="outlined"
-                            type="text"
-                            value={formatRupiah(editedProduct.price)}
-                            onChange={handleInput}
-                            inputProps={{inputMode: "numeric"}}
-                        />
-
-                        {/* STOCK */}
                         <TextField
                             required
                             fullWidth
@@ -177,19 +198,50 @@ export default function EditProduct({productToEdit, onClose}) {
                             onChange={handleInput}
                             inputProps={{inputMode: "numeric", pattern: "[0-9]*"}}
                         />
+                        <TextField
+                            required
+                            fullWidth
+                            id="quantityType"
+                            name="quantityType"
+                            label="Unit"
+                            variant="outlined"
+                            value={editedProduct.quantityType}
+                            onChange={handleInput}
+                        />
                     </Stack>
+
+                    {/* Info fields (read-only) */}
+                    <Box sx={{p: 2, bgcolor: "#f5f5f5", borderRadius: 1}}>
+                        <Typography variant="caption" color="textSecondary">
+                            (Pricing managed by Purchasing)
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" sx={{mt: 1}}>
+                            Harga Modal: <strong>Rp {Number(editedProduct.hargaModal).toLocaleString("id-ID")}</strong>
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" sx={{mt: 1}}>
+                            Harga Jual: <strong>Rp {Number(editedProduct.price).toLocaleString("id-ID")}</strong>
+                        </Typography>
+                    </Box>
 
                     <Button
                         type="submit"
                         fullWidth
                         variant="contained"
-                        color="success" // Warna hijau untuk Update
+                        color="success"
                         size="large"
                         sx={{mt: 3}}
+                        disabled={isLoading}
                     >
-                        Save Changes
+                        {isLoading ? "Saving..." : "Save Changes"}
                     </Button>
-                    <Button type="button" fullWidth variant="outlined" onClick={onClose} size="large">
+                    <Button
+                        type="button"
+                        fullWidth
+                        variant="outlined"
+                        onClick={onClose}
+                        size="large"
+                        disabled={isLoading}
+                    >
                         Batal
                     </Button>
                 </Stack>

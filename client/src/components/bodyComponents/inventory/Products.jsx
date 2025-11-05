@@ -1,36 +1,29 @@
-// #Products.jsx (Revisi Logika Tombol)
-
 import {createContext, useContext, useEffect, useState} from "react";
 import {DataGrid} from "@mui/x-data-grid";
 import ProductContext from "./context/ProductContext";
 import {columns} from "./columns";
-// import DeleteProduct from "./DeleteProduct"; // ❌ Hapus ini, kita buat tombol di sini
 import {searchProducts, deleteProduct} from "../../../api/api";
-// 💡 Import komponen baru dan Mui
 import {Button, Box, Modal, Tooltip} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/DeleteForever";
-import EditProduct from "./EditProduct"; // 💡 KOMPONEN BARU
+import EditProduct from "./EditProduct";
+import {getRoleFromToken} from "../../../utils/getRoleFromToken";
+import PurchasingPriceModal from "./PurchasingPriceModal"; // 🟢 NEW
 
 export const SelectionModelsContext = createContext();
 
 function Products() {
     const {product, setProduct, fetchDataAPI} = useContext(ProductContext);
+    const userRole = getRoleFromToken();
 
     const [selectionModels, setSelectionModels] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
-
-    // 💡 STATE BARU: Untuk mengontrol modal Edit
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isPriceModalOpen, setIsPriceModalOpen] = useState(false); // 🟢 NEW
 
     useEffect(() => {
         fetchDataAPI();
     }, []);
-
-    const searchProduct = async keyword => {
-        const response = await searchProducts(keyword);
-        return response;
-    };
 
     const displayedProducts = searchQuery
         ? product.filter(
@@ -44,6 +37,7 @@ function Products() {
         setSelectionModels(newSelections);
     };
 
+    // 🟢 WAREHOUSE: Delete product
     const handleDelete = async () => {
         if (selectionModels.length === 0) {
             alert("Pilih produk dulu");
@@ -62,7 +56,7 @@ function Products() {
         }
     };
 
-    // 💡 FUNGSI UNTUK MODAL EDIT
+    // 🟢 WAREHOUSE: Edit product
     const handleEditOpen = () => {
         if (selectionModels.length === 1) {
             setIsEditModalOpen(true);
@@ -70,11 +64,20 @@ function Products() {
     };
     const handleEditClose = () => {
         setIsEditModalOpen(false);
-        // Opsi: reset selectionModels setelah edit ditutup
         setSelectionModels([]);
     };
 
-    // Ambil data produk yang sedang diedit (hanya jika 1 terpilih)
+    // 🟢 PURCHASING: Edit price (NEW)
+    const handlePriceEditOpen = () => {
+        if (selectionModels.length === 1) {
+            setIsPriceModalOpen(true);
+        }
+    };
+    const handlePriceEditClose = () => {
+        setIsPriceModalOpen(false);
+        setSelectionModels([]);
+    };
+
     const productToEdit = selectionModels.length === 1 ? product.find(p => p.id === selectionModels[0]) : null;
 
     return (
@@ -82,11 +85,9 @@ function Products() {
             {/* 🔍 Input Search */}
             <div className="group">
                 <svg className="icon" aria-hidden="true" viewBox="0 0 24 24">
-                    {" "}
                     <g>
-                        {" "}
-                        <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>{" "}
-                    </g>{" "}
+                        <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
+                    </g>
                 </svg>
                 <input
                     placeholder="Search by ID or Name"
@@ -97,10 +98,10 @@ function Products() {
                 />
             </div>
 
-            {/* 💡 TOMBOL EDIT DAN DELETE */}
+            {/* 💡 ACTION BUTTONS - ROLE BASED */}
             <Box sx={{my: 2, display: "flex", gap: 1}}>
-                {/* Tombol Edit: Hanya muncul jika selectionModels.length === 1 */}
-                {selectionModels.length === 1 && (
+                {/* WAREHOUSE: Edit button */}
+                {userRole === "warehouse" && selectionModels.length === 1 && productToEdit && (
                     <Tooltip title={`Edit produk: ${productToEdit?.productName || ""}`}>
                         <Button variant="contained" color="info" startIcon={<EditIcon />} onClick={handleEditOpen}>
                             Edit (1)
@@ -108,42 +109,79 @@ function Products() {
                     </Tooltip>
                 )}
 
-                {/* Tombol Delete: Muncul jika selectionModels.length > 0 */}
-                {selectionModels.length > 0 && (
+                {/* WAREHOUSE: Delete button */}
+                {userRole === "warehouse" && selectionModels.length > 0 && (
                     <Tooltip title={`Hapus ${selectionModels.length} produk terpilih`}>
                         <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={handleDelete}>
                             Hapus ({selectionModels.length})
                         </Button>
                     </Tooltip>
                 )}
+
+                {/* PURCHASING: Set Price button (NEW) */}
+                {userRole === "purchasing" && selectionModels.length === 1 && productToEdit && (
+                    <Tooltip title={`Set harga untuk: ${productToEdit?.productName || ""}`}>
+                        <Button variant="contained" color="success" onClick={handlePriceEditOpen}>
+                            Set Harga (1)
+                        </Button>
+                    </Tooltip>
+                )}
+
+                {/* MARKETING: No buttons (read-only) */}
+                {userRole === "marketing" && (
+                    <Tooltip title="Marketing: Read-only mode">
+                        <Button variant="outlined" disabled>
+                            Read-only Mode
+                        </Button>
+                    </Tooltip>
+                )}
             </Box>
 
-            {/* 📊 Tampilkan data yang sudah difilter */}
+            {/* 📊 DATA GRID */}
             <SelectionModelsContext.Provider value={[selectionModels, setSelectionModels]}>
                 <DataGrid
-                    sx={{borderLeft: 0, borderRight: 0, borderRadius: 0, height: "35rem"}}
-                    columns={columns}
+                    sx={{
+                        borderLeft: 0,
+                        borderRight: 0,
+                        borderRadius: 0,
+                        height: "35rem",
+                        "& .MuiDataGrid-cell": {
+                            whiteSpace: "normal",
+                            lineHeight: "1.2",
+                            display: "flex",
+                            alignItems: "center"
+                        }
+                    }}
+                    columns={columns(userRole)}
                     rows={displayedProducts}
                     getRowId={row => row.id}
                     initialState={{
                         pagination: {paginationModel: {page: 0, pageSize: 100}}
                     }}
                     pageSizeOptions={[5, 10, 20, 100]}
-                    checkboxSelection
+                    checkboxSelection={userRole !== "marketing"} // 🟢 Marketing: no checkbox
                     onRowSelectionModelChange={handleSelectionChange}
-                    rowSelectionModel={selectionModels}
+                    rowSelectionModel={userRole !== "marketing" ? selectionModels : []} // 🟢 Marketing: no selection
                 />
-                {/* Hapus div lama untuk DeleteProduct */}
-                {/* <div className="">{selectionModels.length > 0 && <DeleteProduct handleDelete={handleDelete} />}</div> */}
             </SelectionModelsContext.Provider>
 
-            {/* 💡 MODAL EDIT */}
-            <Modal open={isEditModalOpen} onClose={handleEditClose}>
-                <Box>
-                    {/* Kirim data produk yang mau diedit dan fungsi penutup modal */}
-                    <EditProduct productToEdit={productToEdit} onClose={handleEditClose} />
-                </Box>
-            </Modal>
+            {/* 🔧 MODAL EDIT - WAREHOUSE ONLY */}
+            {userRole === "warehouse" && (
+                <Modal open={isEditModalOpen} onClose={handleEditClose}>
+                    <Box>
+                        <EditProduct productToEdit={productToEdit} onClose={handleEditClose} />
+                    </Box>
+                </Modal>
+            )}
+
+            {/* 💰 MODAL SET PRICE - PURCHASING ONLY (NEW) */}
+            {userRole === "purchasing" && (
+                <Modal open={isPriceModalOpen} onClose={handlePriceEditClose}>
+                    <Box>
+                        <PurchasingPriceModal productToEdit={productToEdit} onClose={handlePriceEditClose} />
+                    </Box>
+                </Modal>
+            )}
         </>
     );
 }

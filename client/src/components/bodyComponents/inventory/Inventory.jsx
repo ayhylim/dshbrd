@@ -21,7 +21,10 @@ export default class Inventory extends Component {
         return (
             <Box>
                 <Grid container sx={{mx: 3, p: 3}}>
-                    <Grid item md={9}>
+                    {/* 1. SEKSI PRODUK (Products.jsx) - Lebar Penuh (md={12}) */}
+                    <Grid item xs={12}>
+                        {" "}
+                        {/* Menggunakan xs={12} atau md={12} agar lebar penuh */}
                         <Box
                             sx={{
                                 margin: 3,
@@ -35,13 +38,16 @@ export default class Inventory extends Component {
                                 Inventory
                             </Typography>
                             <Box></Box>
+                            {/* Komponen Products sekarang menggunakan seluruh lebar yang tersedia */}
                             <Products />
                             <Button variant="contained" sx={{bgcolor: "#504099"}} onClick={this.handleOpen}>
                                 Add Product
                             </Button>
                         </Box>
                     </Grid>
-                    <Grid item md={3}>
+
+                    <Grid item xs={12} sx={{mt: 3}}>
+                        {" "}
                         <Box
                             sx={{
                                 margin: 3,
@@ -55,15 +61,16 @@ export default class Inventory extends Component {
                                 Overview
                             </Typography>
                             <Overview />
-                            <Modal open={this.state.open} onClose={this.handleClose}>
-                                {/*  */}
-                                <Box>
-                                    <AddProduct />
-                                </Box>
-                            </Modal>
                         </Box>
                     </Grid>
                 </Grid>
+
+                {/* MODAL AddProduct - Dipindahkan ke luar Grid kontainer agar lebih bersih */}
+                <Modal open={this.state.open} onClose={this.handleClose}>
+                    <Box>
+                        <AddProduct />
+                    </Box>
+                </Modal>
             </Box>
         );
     }

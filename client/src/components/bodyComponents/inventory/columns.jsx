@@ -1,45 +1,102 @@
-import Product from "./Product";
+import {Typography} from "@mui/material";
+import {getRoleFromToken} from "../../../utils/getRoleFromToken";
 
-export const columns = [
-    {
-        field: "id",
-        headerName: "ID",
-        width: 90,
-        description: "id of the product"
-    },
-    {
-        field: "product",
-        headerName: "Product",
-        width: 300,
-        description: "",
-        //same here we have the cell data which i will get the value of the cells in the tables cellData.row.fieldName
+export const columns = (role = getRoleFromToken()) => {
+    const baseColumns = [
+        {
+            field: "id",
+            headerName: "ID",
+            width: 90,
+            description: "id of the product"
+        },
+        {
+            field: "productName",
+            headerName: "Product Name",
+            width: 200,
+            description: "product name",
+            resizable: true,
+            flex: 1,
+            renderCell: cellData => (
+                <div
+                    style={{
+                        whiteSpace: "normal", 
+                        lineHeight: "1.2",
+                        padding: "8px 0"
+                    }}
+                >
+                    <Typography variant="subtitle2" sx={{mx: 3}}>
+                        {cellData.row.productName}
+                    </Typography>
+                </div>
+            )
+        },
+        {
+            field: "category",
+            headerName: "Category",
+            width: 150,
+            description: "category of the product"
+        },
+        {
+            field: "stock",
+            headerName: "Stock",
+            width: 100,
+            description: "stock quantity",
+            valueGetter: params => {
+                const stock = params.row.stock;
+                const unit = params.row.quantityType ? params.row.quantityType.toUpperCase() : "PCS";
+                return `${stock} ${unit}`;
+            }
+        }
+    ];
 
-        renderCell: cellData => {
-            return <Product productName={cellData.row.productName} />; //this is just return name of the product
-        }
-    },
-    {
-        field: "category",
-        headerName: "Category",
-        width: 200,
-        description: "category of the product"
-    },
-    {
-        field: "price",
-        headerName: "Price",
-        width: 150,
-        description: "price o f the product",
-        valueGetter: params => `IDR ${params.row.price.toLocaleString("id-id")}`
-    },
-    {
-        field: "stock",
-        headerName: "Stock",
-        width: 100,
-        description: "how many items in the stock", // 💡 REVISI KRITIS: Mengambil nilai quantityType untuk ditampilkan
-        valueGetter: params => {
-            const stock = params.row.stock; // Jika quantityType ada, gunakan. Jika tidak, fallback ke "pcs".
-            const unit = params.row.quantityType ? params.row.quantityType.toUpperCase() : "PCS";
-            return `${stock} ${unit}`;
-        }
+    // WAREHOUSE: Lihat ONLY id, productName, category, stock, quantityType
+    if (role === "warehouse") {
+        return baseColumns;
     }
-];
+
+    // PURCHASING: Lihat semua termasuk price (hargaJual) + hargaModal
+    if (role === "purchasing") {
+        return [
+            ...baseColumns,
+            {
+                field: "hargaModal",
+                headerName: "Harga Modal",
+                width: 150,
+                description: "harga modal produk",
+                valueGetter: params => {
+                    const price = params.row.hargaModal;
+                    return price > 0 ? `Rp ${Number(price).toLocaleString("id-ID")}` : "-";
+                }
+            },
+            {
+                field: "price",
+                headerName: "Harga Jual",
+                width: 150,
+                description: "harga jual produk",
+                valueGetter: params => {
+                    const price = params.row.price;
+                    return price > 0 ? `Rp ${Number(price).toLocaleString("id-ID")}` : "-";
+                }
+            }
+        ];
+    }
+
+    // MARKETING: Lihat id, productName, category, price (hargaJual), stock
+    if (role === "marketing") {
+        return [
+            ...baseColumns,
+            {
+                field: "price",
+                headerName: "Harga Jual",
+                width: 150,
+                description: "harga jual produk",
+                valueGetter: params => {
+                    const price = params.row.price;
+                    return price > 0 ? `Rp ${Number(price).toLocaleString("id-ID")}` : "-";
+                }
+            }
+        ];
+    }
+
+    return baseColumns;
+};
