@@ -4,7 +4,7 @@ import ProductContext from "./context/ProductContext";
 import {getRoleFromToken} from "../../../utils/getRoleFromToken";
 
 const initialValue = {
-    id: "",
+    // 🔹 HAPUS ID FIELD - AUTO-GENERATE DI BACKEND
     productName: "",
     category: "",
     stock: "",
@@ -87,6 +87,7 @@ export default function AddProduct() {
         const finalProduct = {
             ...product,
             stock: Number(product.stock || 0)
+            // 🔹 ID TIDAK DISERTAKAN - AUTO-GENERATE DI BACKEND
         };
 
         await onCreateProduct(finalProduct);
@@ -113,16 +114,7 @@ export default function AddProduct() {
 
             <Box component="form" onSubmit={handleSubmit} autoComplete="off">
                 <Stack spacing={3}>
-                    <TextField
-                        required
-                        fullWidth
-                        id="id"
-                        name="id"
-                        label="Product ID"
-                        variant="outlined"
-                        onChange={handleInput}
-                        value={product.id}
-                    />
+                    {/* 🔹 HAPUS FIELD ID */}
                     <TextField
                         required
                         fullWidth
@@ -173,6 +165,7 @@ export default function AddProduct() {
                                 <MenuItem value={"pack"}>Pack</MenuItem>
                                 <MenuItem value={"unit"}>Unit</MenuItem>
                                 <MenuItem value={"set"}>Set</MenuItem>
+                                <MenuItem value={"meter"}>Meter</MenuItem>
                             </Select>
                         </FormControl>
                     </Stack>

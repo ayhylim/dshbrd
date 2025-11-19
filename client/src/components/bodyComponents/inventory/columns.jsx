@@ -4,10 +4,12 @@ import {getRoleFromToken} from "../../../utils/getRoleFromToken";
 export const columns = (role = getRoleFromToken()) => {
     const baseColumns = [
         {
-            field: "id",
-            headerName: "ID",
-            width: 90,
-            description: "id of the product"
+            field: "rowNumber",
+            headerName: "No",
+            width: 60,
+            description: "Sequential row number",
+            sortable: false,
+            filterable: false
         },
         {
             field: "productName",
@@ -19,7 +21,7 @@ export const columns = (role = getRoleFromToken()) => {
             renderCell: cellData => (
                 <div
                     style={{
-                        whiteSpace: "normal", 
+                        whiteSpace: "normal",
                         lineHeight: "1.2",
                         padding: "8px 0"
                     }}
@@ -49,7 +51,7 @@ export const columns = (role = getRoleFromToken()) => {
         }
     ];
 
-    // WAREHOUSE: Lihat ONLY id, productName, category, stock, quantityType
+    // WAREHOUSE: Lihat ONLY productName, category, stock, quantityType (NO ID SHOWN)
     if (role === "warehouse") {
         return baseColumns;
     }
@@ -81,7 +83,7 @@ export const columns = (role = getRoleFromToken()) => {
         ];
     }
 
-    // MARKETING: Lihat id, productName, category, price (hargaJual), stock
+    // MARKETING: Lihat productName, category, price (hargaJual), stock
     if (role === "marketing") {
         return [
             ...baseColumns,

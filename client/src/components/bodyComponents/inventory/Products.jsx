@@ -8,7 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/DeleteForever";
 import EditProduct from "./EditProduct";
 import {getRoleFromToken} from "../../../utils/getRoleFromToken";
-import PurchasingPriceModal from "./PurchasingPriceModal"; // 🟢 NEW
+import PurchasingPriceModal from "./PurchasingPriceModal";
 
 export const SelectionModelsContext = createContext();
 
@@ -19,7 +19,7 @@ function Products() {
     const [selectionModels, setSelectionModels] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isPriceModalOpen, setIsPriceModalOpen] = useState(false); // 🟢 NEW
+    const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
 
     useEffect(() => {
         fetchDataAPI();
@@ -32,6 +32,12 @@ function Products() {
                   (item.productName && item.productName.toLowerCase().includes(searchQuery.toLowerCase()))
           )
         : product;
+
+    // 💡 TAMBAH rowNumber (seperti Orders.jsx)
+    const displayedProductsWithRowNumber = displayedProducts.map((item, index) => ({
+        ...item,
+        rowNumber: index + 1
+    }));
 
     const handleSelectionChange = newSelections => {
         setSelectionModels(newSelections);
@@ -67,7 +73,7 @@ function Products() {
         setSelectionModels([]);
     };
 
-    // 🟢 PURCHASING: Edit price (NEW)
+    // 🟢 PURCHASING: Edit price
     const handlePriceEditOpen = () => {
         if (selectionModels.length === 1) {
             setIsPriceModalOpen(true);
@@ -118,7 +124,7 @@ function Products() {
                     </Tooltip>
                 )}
 
-                {/* PURCHASING: Set Price button (NEW) */}
+                {/* PURCHASING: Set Price button */}
                 {userRole === "purchasing" && selectionModels.length === 1 && productToEdit && (
                     <Tooltip title={`Set harga untuk: ${productToEdit?.productName || ""}`}>
                         <Button variant="contained" color="success" onClick={handlePriceEditOpen}>
@@ -153,15 +159,15 @@ function Products() {
                         }
                     }}
                     columns={columns(userRole)}
-                    rows={displayedProducts}
+                    rows={displayedProductsWithRowNumber}
                     getRowId={row => row.id}
                     initialState={{
                         pagination: {paginationModel: {page: 0, pageSize: 100}}
                     }}
                     pageSizeOptions={[5, 10, 20, 100]}
-                    checkboxSelection={userRole !== "marketing"} // 🟢 Marketing: no checkbox
+                    checkboxSelection={userRole !== "marketing"}
                     onRowSelectionModelChange={handleSelectionChange}
-                    rowSelectionModel={userRole !== "marketing" ? selectionModels : []} // 🟢 Marketing: no selection
+                    rowSelectionModel={userRole !== "marketing" ? selectionModels : []}
                 />
             </SelectionModelsContext.Provider>
 
@@ -174,7 +180,7 @@ function Products() {
                 </Modal>
             )}
 
-            {/* 💰 MODAL SET PRICE - PURCHASING ONLY (NEW) */}
+            {/* 💰 MODAL SET PRICE - PURCHASING ONLY */}
             {userRole === "purchasing" && (
                 <Modal open={isPriceModalOpen} onClose={handlePriceEditClose}>
                     <Box>

@@ -4,7 +4,6 @@
       "id": "1",
       "productName": "1",
       "category": "1",
-      "price": 1,
       "stock": 1,
       "quantityType": "kg"
     },
@@ -12,17 +11,29 @@
       "id": "2",
       "productName": "2",
       "category": "2",
-      "price": 2,
       "stock": 2,
-      "quantityType": "pack"
+      "quantityType": "unit"
     },
     {
-      "id": "3",
+      "id": "6f7b",
       "productName": "3",
       "category": "3",
-      "price": 3,
       "stock": 3,
-      "quantityType": "roll"
+      "quantityType": "unit"
+    },
+    {
+      "id": "af38",
+      "productName": "ini nama",
+      "category": "ini kategori",
+      "stock": 80,
+      "quantityType": "kg"
+    },
+    {
+      "id": "fb57",
+      "productName": "5",
+      "category": "5",
+      "stock": 5,
+      "quantityType": "kg"
     }
   ],
   "orders": [],
