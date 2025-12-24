@@ -1,21 +1,17 @@
-// #AddOrderModal.jsx (Kode yang Direvisi untuk Mencegah Duplikasi Produk)
-
 import {Box, Button, TextField, Stack, Typography, IconButton} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {useState, useContext, useEffect, useMemo} from "react"; // 💡 Import useMemo
+import {useState, useContext, useEffect, useMemo} from "react";
 import Select from "react-select";
-import {fetchProduct} from "../../../api/api"; // Hapus fetchOrderProduct karena tidak digunakan di sini
+import {fetchProduct} from "../../../api/api";
 import ProductContext from "../inventory/context/ProductContext";
 
-// Initial state
 const initialOrderValue = {
     customer: ""
 };
 
-// Struktur awal untuk satu item produk
 const initialProductItem = {
-    selectedOption: null, // { value: id, label: productName }
-    productAmount: 0 // QTY produk
+    selectedOption: null,
+    productAmount: 0
 };
 
 export default function AddOrderModal() {
@@ -24,38 +20,40 @@ export default function AddOrderModal() {
     const [orderInputs, setOrderInputs] = useState(initialOrderValue);
     const [orderProducts, setOrderProducts] = useState([initialProductItem]);
 
-    // -----------------------------------------------------------------------
-    // 💡 LOGIKA BARU: MENGHITUNG PRODUK YANG SUDAH DIPILIH
-    // -----------------------------------------------------------------------
     const selectedProductNames = useMemo(() => {
-        // Buat Set dari nama produk yang telah dipilih di semua baris input
-        return new Set(
-            orderProducts.map(item => item.selectedOption?.label).filter(name => name) // Filter out null/undefined names
-        );
+        return new Set(orderProducts.map(item => item.selectedOption?.label).filter(name => name));
     }, [orderProducts]);
 
-    // -----------------------------------------------------------------------
-    // HANDLERS UNTUK MENGELOLA ARRAY PRODUK
-    // -----------------------------------------------------------------------
-
     const handleAddProductField = () => {
-        // Menambah item produk baru ke dalam array orderProducts
         setOrderProducts(prev => [...prev, initialProductItem]);
     };
 
     const handleDeleteProductField = index => {
-        // Menghapus item produk pada index tertentu
         setOrderProducts(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleProductChange = (index, name, value) => {
-        // Update QTY (productAmount) atau Select Option (selectedOption) pada index tertentu
         setOrderProducts(prev => prev.map((item, i) => (i === index ? {...item, [name]: value} : item)));
     };
 
-    // -----------------------------------------------------------------------
-    // SUBMIT ORDER
-    // -----------------------------------------------------------------------
+    // 💡 UBAH: Handler untuk QTY yang mendukung float
+    const handleQtyChange = (index, e) => {
+        const {value} = e.target;
+
+        // 💡 Terima angka desimal
+        const rawValue = value.replace(/[^0-9.]/g, "");
+
+        // Validasi: hanya boleh 1 titik
+        const dotCount = (rawValue.match(/\./g) || []).length;
+        if (dotCount > 1) return;
+
+        // Validasi: tidak boleh negatif
+        const numValue = parseFloat(rawValue);
+        if (!isNaN(numValue) && numValue < 0) return;
+
+        handleProductChange(index, "productAmount", rawValue);
+    };
+
     const handleSubmit = async e => {
         e.preventDefault();
 
@@ -63,22 +61,24 @@ export default function AddOrderModal() {
         const productsToOrder = [];
         let validationFailed = false;
 
-        // 1. Validasi Duplikasi Produk di tahap Submit (jika ada bug di filter UI)
-        // Walaupun UI sudah difilter, ini adalah lapisan keamanan tambahan.
         const uniqueProducts = new Set();
 
         for (const item of orderProducts) {
             const productName = item.selectedOption ? item.selectedOption.label : null;
-            const productAmount = Number(item.productAmount);
+            const productAmount = parseFloat(item.productAmount); // 💡 UBAH: parseFloat untuk desimal
 
-            // Validasi Dasar dan Kelengkapan Input
             if (!customerName || orderProducts.length === 0 || !productName || productAmount <= 0) {
                 alert("Harap lengkapi semua field yang diperlukan (Pelanggan, Produk, dan Jumlah > 0).");
                 validationFailed = true;
                 break;
             }
 
-            // 💡 Validasi Duplikasi Produk
+            if (isNaN(productAmount)) {
+                alert("Jumlah produk harus berupa angka valid!");
+                validationFailed = true;
+                break;
+            }
+
             if (uniqueProducts.has(productName)) {
                 alert(
                     `Produk "${productName}" sudah dipilih. Harap hapus duplikasi atau tambahkan QTY di baris yang sudah ada.`
@@ -88,7 +88,6 @@ export default function AddOrderModal() {
             }
             uniqueProducts.add(productName);
 
-            // Validasi Stok
             const availableStock = getProductStock(productName);
             if (productAmount > availableStock) {
                 alert(
@@ -108,7 +107,6 @@ export default function AddOrderModal() {
             return;
         }
 
-        // 3. Jika semua validasi lolos, buat data final
         const finalOrderData = {
             customer: customerName,
             dateCreated: new Date().toISOString(),
@@ -119,7 +117,6 @@ export default function AddOrderModal() {
             await onCreateOrderProduct(finalOrderData);
             await fetchDataOrderAPI();
 
-            // Reset form setelah berhasil
             setOrderInputs(initialOrderValue);
             setOrderProducts([initialProductItem]);
 
@@ -129,7 +126,6 @@ export default function AddOrderModal() {
             alert("Terjadi kesalahan saat memproses order.");
         }
     };
-    // -----------------------------------------------------------------------
 
     const handleChange = e => {
         const {name, value} = e.target;
@@ -140,7 +136,6 @@ export default function AddOrderModal() {
         }));
     };
 
-    // Helper untuk fetch product options (tidak berubah)
     const loadProductOptions = async () => {
         try {
             const datas = await fetchProduct();
@@ -161,12 +156,11 @@ export default function AddOrderModal() {
         fetchDataOrderAPI();
     }, []);
 
-    // Helper untuk menampilkan pesan error di tombol Submit
     const isSubmitDisabled = orderProducts.some(item => {
         const productName = item.selectedOption?.label;
-        const amount = Number(item.productAmount);
+        const amount = parseFloat(item.productAmount); // 💡 UBAH: parseFloat
         const availableStock = productName ? getProductStock(productName) : Infinity;
-        return amount <= 0 || amount > availableStock || !productName; // 💡 Disabled jika produk belum dipilih
+        return amount <= 0 || isNaN(amount) || amount > availableStock || !productName;
     });
 
     return (
@@ -189,7 +183,6 @@ export default function AddOrderModal() {
 
             <Box component="form" onSubmit={handleSubmit} autoComplete="off">
                 <Stack spacing={3}>
-                    {/* Customer Name */}
                     <TextField
                         required
                         fullWidth
@@ -201,21 +194,17 @@ export default function AddOrderModal() {
                         onChange={handleChange}
                     />
 
-                    {/* Header Produk (opsional) */}
                     <Typography variant="subtitle1" sx={{mt: 2, mb: 1}}>
                         Detail Produk:
                     </Typography>
 
-                    {/* 🔄 Mapping Array Produk yang Dinamis */}
                     <Stack spacing={2}>
                         {orderProducts.map((item, index) => {
                             const productName = item.selectedOption?.label;
                             const currentStock = productName ? getProductStock(productName) : null;
                             const isStockInsufficient =
-                                currentStock !== null && Number(item.productAmount) > currentStock;
+                                currentStock !== null && parseFloat(item.productAmount) > currentStock;
 
-                            // 💡 Opsi untuk baris ini: Gabungkan semua opsi yang belum dipilih
-                            // Ditambah opsi yang saat ini dipilih (untuk menjaga nilai yang sudah ada)
                             const currentOptions = productOptions.filter(
                                 option => !selectedProductNames.has(option.label) || option.label === productName
                             );
@@ -223,24 +212,25 @@ export default function AddOrderModal() {
                             return (
                                 <div key={index} className="product-selection-field">
                                     <Stack direction="row" spacing={1} alignItems="flex-start">
-                                        {/* QTY Field */}
+                                        {/* QTY Field - 💡 UBAH: Support float */}
                                         <TextField
                                             required
                                             id={`qty-${index}`}
                                             name="productAmount"
-                                            label="QTY"
+                                            label="QTY (Integer atau Desimal)"
                                             variant="outlined"
-                                            type="number"
-                                            onChange={e => handleProductChange(index, "productAmount", e.target.value)}
+                                            type="text"
+                                            onChange={e => handleQtyChange(index, e)}
                                             value={item.productAmount}
-                                            inputProps={{inputMode: "numeric", pattern: "[0-9]*", min: 1}}
+                                            placeholder="Contoh: 5 atau 5.5"
+                                            helperText="Contoh: 10 atau 10.5"
+                                            inputProps={{inputMode: "decimal", pattern: "[0-9.]*"}}
                                             sx={{width: "15%"}}
                                         />
 
                                         {/* Product Select */}
                                         <div style={{width: "70%"}}>
                                             <Select
-                                                // 💡 MENGGUNAKAN OPSI YANG SUDAH DIFILTER
                                                 options={currentOptions}
                                                 value={item.selectedOption}
                                                 onChange={option =>
@@ -250,7 +240,6 @@ export default function AddOrderModal() {
                                                 placeholder="Select Product"
                                                 isClearable={false}
                                             />
-                                            {/* Info Stok Tersedia */}
                                             {currentStock !== null && (
                                                 <Typography
                                                     variant="caption"
@@ -267,7 +256,6 @@ export default function AddOrderModal() {
                                             onClick={() => handleDeleteProductField(index)}
                                             color="error"
                                             aria-label="delete product item"
-                                            // Jangan izinkan menghapus jika hanya tersisa 1 baris
                                             disabled={orderProducts.length === 1}
                                             sx={{mt: 0.5}}
                                         >
@@ -279,17 +267,15 @@ export default function AddOrderModal() {
                         })}
                     </Stack>
 
-                    {/* Tombol Add Product (Disable jika semua produk sudah dipilih) */}
                     <Button
                         onClick={handleAddProductField}
                         variant="outlined"
                         sx={{mt: 2, width: "100%"}}
-                        disabled={productOptions.length === orderProducts.length} // 💡 DISABLE JIKA SEMUA OPSI TELAH DIGUNAKAN
+                        disabled={productOptions.length === orderProducts.length}
                     >
                         Tambah Produk Lain
                     </Button>
 
-                    {/* Submit Button */}
                     <Button
                         type="submit"
                         fullWidth
@@ -302,7 +288,6 @@ export default function AddOrderModal() {
                         Order Produk
                     </Button>
 
-                    {/* 🚨 Tampilkan Pesan Error di bawah tombol jika stok kurang/input kurang */}
                     {isSubmitDisabled && (
                         <Typography color="error" align="center">
                             ** Harap isi semua kolom dan pastikan QTY tidak melebihi stok tersedia. **

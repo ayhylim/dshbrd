@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "UI",
+            "type": "shell",
+            "command": "cd client && npm run dev",
+            "presentation": {"panel": "new", "clear": true},
+            "runOptions": {"runOn": "folderOpen"},
+            "icon": {"id": "paintcan", "color": "terminal.ansiBlue"}
+        },
+        {
+            "label": "JSON BE",
+            "type": "shell",
+            "command": "cd client && npm run server",
+            "presentation": {"panel": "new", "clear": true},
+            "runOptions": {"runOn": "folderOpen"},
+            "icon": {"id": "json", "color": "terminal.ansiYellow"}
+        },
+        {
+            "label": "Mongo BE",
+            "type": "shell",
+            "command": "cd login && node app",
+            "presentation": {"panel": "new", "clear": true},
+            "runOptions": {"runOn": "folderOpen"},
+            "icon": {"id": "database", "color": "terminal.ansiYellow"}
+        }
+    ]
+}

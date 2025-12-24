@@ -4,17 +4,18 @@ import ProductContext from "./context/ProductContext";
 import {getRoleFromToken} from "../../../utils/getRoleFromToken";
 
 const initialValue = {
-    // 🔹 HAPUS ID FIELD - AUTO-GENERATE DI BACKEND
     productName: "",
     category: "",
     stock: "",
     quantityType: ""
 };
 
-const formatRupiah = numberString => {
-    const rawValue = String(numberString).replace(/\D/g, "");
-    if (!rawValue) return "";
-    return new Intl.NumberFormat("id-ID").format(Number(rawValue));
+// 💡 HELPER: Format number dengan separator (tampilan saja, tidak mengubah value)
+const formatNumberDisplay = numberString => {
+    if (!numberString) return "";
+    const numValue = parseFloat(numberString);
+    if (isNaN(numValue)) return numberString;
+    return new Intl.NumberFormat("id-ID").format(numValue);
 };
 
 const useInputHandler = (product, setProduct) => {
@@ -23,7 +24,18 @@ const useInputHandler = (product, setProduct) => {
             const {name, value} = e.target;
 
             if (name === "stock") {
-                const rawValue = value.replace(/\D/g, "");
+                // 💡 UBAH: Terima angka desimal
+                // Hapus karakter non-numeric kecuali titik (.)
+                const rawValue = value.replace(/[^0-9.]/g, "");
+
+                // Validasi: hanya boleh 1 titik
+                const dotCount = (rawValue.match(/\./g) || []).length;
+                if (dotCount > 1) return; // Jangan update jika lebih dari 1 titik
+
+                // Validasi: tidak boleh negatif
+                const numValue = parseFloat(rawValue);
+                if (!isNaN(numValue) && numValue < 0) return;
+
                 setProduct(prev => ({
                     ...prev,
                     [name]: rawValue
@@ -84,10 +96,16 @@ export default function AddProduct() {
             return;
         }
 
+        // 💡 Validasi stock
+        const stockValue = parseFloat(product.stock);
+        if (isNaN(stockValue) || stockValue < 0) {
+            alert("Stock harus berupa angka positif (integer atau desimal)");
+            return;
+        }
+
         const finalProduct = {
             ...product,
-            stock: Number(product.stock || 0)
-            // 🔹 ID TIDAK DISERTAKAN - AUTO-GENERATE DI BACKEND
+            stock: stockValue
         };
 
         await onCreateProduct(finalProduct);
@@ -114,7 +132,6 @@ export default function AddProduct() {
 
             <Box component="form" onSubmit={handleSubmit} autoComplete="off">
                 <Stack spacing={3}>
-                    {/* 🔹 HAPUS FIELD ID */}
                     <TextField
                         required
                         fullWidth
@@ -142,12 +159,14 @@ export default function AddProduct() {
                             fullWidth
                             id="stock"
                             name="stock"
-                            label="Stock Quantity"
+                            label="Stock Quantity (Integer atau Desimal)"
                             variant="outlined"
                             type="text"
                             value={product.stock}
                             onChange={handleInput}
-                            inputProps={{inputMode: "numeric", pattern: "[0-9]*"}}
+                            placeholder="Contoh: 10 atau 10.5 atau 10.25"
+                            helperText="Masukkan angka positif. Contoh: 5, 5.5, 5.25"
+                            inputProps={{inputMode: "decimal", pattern: "[0-9.]*"}}
                         />
                         <FormControl variant="outlined" sx={{minWidth: 120}}>
                             <InputLabel id="quantityType-label">Unit</InputLabel>
@@ -166,6 +185,8 @@ export default function AddProduct() {
                                 <MenuItem value={"unit"}>Unit</MenuItem>
                                 <MenuItem value={"set"}>Set</MenuItem>
                                 <MenuItem value={"meter"}>Meter</MenuItem>
+                                <MenuItem value={"liter"}>Liter</MenuItem>
+                                <MenuItem value={"ton"}>Ton</MenuItem>
                             </Select>
                         </FormControl>
                     </Stack>

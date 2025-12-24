@@ -10,7 +10,17 @@ const useInputHandler = (product, setProduct) => {
             const {name, value} = e.target;
 
             if (name === "stock") {
-                const rawValue = value.replace(/\D/g, "");
+                // 💡 UBAH: Terima angka desimal
+                const rawValue = value.replace(/[^0-9.]/g, "");
+
+                // Validasi: hanya boleh 1 titik
+                const dotCount = (rawValue.match(/\./g) || []).length;
+                if (dotCount > 1) return;
+
+                // Validasi: tidak boleh negatif
+                const numValue = parseFloat(rawValue);
+                if (!isNaN(numValue) && numValue < 0) return;
+
                 setProduct(prev => ({
                     ...prev,
                     [name]: rawValue
@@ -45,7 +55,6 @@ export default function EditProduct({productToEdit, onClose}) {
         if (productToEdit) {
             console.log("🔄 [EditProduct] Fetching FULL data from backend for product:", productToEdit.id);
 
-            // Fetch dari backend untuk pastikan data lengkap
             axios
                 .get(`http://127.0.0.1:3001/productList`)
                 .then(response => {
@@ -58,7 +67,7 @@ export default function EditProduct({productToEdit, onClose}) {
                             id: fullProduct.id || "",
                             productName: fullProduct.productName || "",
                             category: fullProduct.category || "",
-                            stock: String(fullProduct.stock || 0),
+                            stock: String(fullProduct.stock || 0), // 💡 Convert to string untuk display
                             quantityType: fullProduct.quantityType || "",
                             price: fullProduct.price || 0,
                             hargaModal: fullProduct.hargaModal || 0
@@ -78,7 +87,6 @@ export default function EditProduct({productToEdit, onClose}) {
                 })
                 .catch(error => {
                     console.error("❌ [EditProduct] Error fetching data:", error);
-                    // Fallback ke UI data
                     setEditedProduct({
                         id: productToEdit.id || "",
                         productName: productToEdit.productName || "",
@@ -103,15 +111,22 @@ export default function EditProduct({productToEdit, onClose}) {
             return;
         }
 
-        // 🟢 SEND FULL DATA (warehouse update only warehouse fields, but send everything)
+        // 💡 Validasi stock
+        const stockValue = parseFloat(editedProduct.stock);
+        if (isNaN(stockValue) || stockValue < 0) {
+            alert("Stock harus berupa angka positif (integer atau desimal)");
+            setIsLoading(false);
+            return;
+        }
+
         const finalProduct = {
             id: editedProduct.id,
             productName: editedProduct.productName,
             category: editedProduct.category,
-            stock: Number(editedProduct.stock || 0),
+            stock: stockValue,
             quantityType: editedProduct.quantityType,
-            price: editedProduct.price, // 🟢 Preserve price from backend
-            hargaModal: editedProduct.hargaModal // 🟢 Preserve hargaModal from backend
+            price: editedProduct.price,
+            hargaModal: editedProduct.hargaModal
         };
 
         console.log("📤 [EditProduct] Sending FULL data:", finalProduct);
@@ -191,12 +206,14 @@ export default function EditProduct({productToEdit, onClose}) {
                             fullWidth
                             id="stock"
                             name="stock"
-                            label="Stock Quantity"
+                            label="Stock Quantity (Integer atau Desimal)"
                             variant="outlined"
                             type="text"
                             value={editedProduct.stock}
                             onChange={handleInput}
-                            inputProps={{inputMode: "numeric", pattern: "[0-9]*"}}
+                            placeholder="Contoh: 10 atau 10.5 atau 10.25"
+                            helperText="Masukkan angka positif. Contoh: 5, 5.5, 5.25"
+                            inputProps={{inputMode: "decimal", pattern: "[0-9.]*"}}
                         />
                         <TextField
                             required

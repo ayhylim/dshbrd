@@ -1,5 +1,3 @@
-// #NavbarComponent.jsx (Revisi Final dengan Tombol OK/Hapus Notifikasi Dinamis)
-
 import {
     Box,
     Grid,
@@ -20,11 +18,11 @@ import ProductContext from "./bodyComponents/inventory/context/ProductContext";
 import Logo from "../../public/pictures/logo.jpg";
 import {getUserFromToken} from "../utils/getRoleFromToken";
 
-// Logika untuk mendeteksi produk yang butuh supply
+// 💡 UBAH: Logika untuk mendeteksi produk yang butuh supply dengan threshold float
 const checkSupplyNeeds = (products, getDemandFunction) => {
-    // Tentukan kriteria Anda di sini
-    const CRITICAL_STOCK_THRESHOLD = 50;
-    const HIGH_DEMAND_THRESHOLD = 500;
+    // 💡 UBAH: Threshold sekarang bisa float
+    const CRITICAL_STOCK_THRESHOLD = 50.5; // Contoh: 50.5 unit
+    const HIGH_DEMAND_THRESHOLD = 500.0; // Contoh: 500.0 unit
 
     return products
         .map(p => {
@@ -43,7 +41,6 @@ const checkSupplyNeeds = (products, getDemandFunction) => {
 };
 
 export default function NavBarComponent() {
-    // Ambil state dan fungsi dari Context
     const {product, fetchDataAPI, order, fetchDataOrderAPI, getProductDemand} = useContext(ProductContext);
 
     const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
@@ -51,14 +48,11 @@ export default function NavBarComponent() {
     const [smartNotifications, setSmartNotifications] = useState([]);
     const userInfo = getUserFromToken();
 
-    // 💡 STATE BARU: Untuk menyimpan notifikasi dinamis yang sudah dikonfirmasi/dihapus (oleh user)
-    // Di dunia nyata, ini akan disimpan di server atau LocalStorage.
     const [dismissedNotifications, setDismissedNotifications] = useState([]);
 
     const open = Boolean(anchorEl);
     const notificationOpen = Boolean(notificationAnchorEl);
 
-    // ... (handle function tetap sama)
     const handleAvatarClicked = event => {
         setAnchorEl(event.currentTarget);
     };
@@ -73,35 +67,24 @@ export default function NavBarComponent() {
         setNotificationAnchorEl(null);
     };
 
-    // 💡 FUNGSI BARU: Menghapus notifikasi dinamis (tombol OK)
     const handleDismissNotification = id => {
-        // 1. Tambahkan ID notifikasi ke daftar yang di-dismiss
         setDismissedNotifications(prev => [...prev, id]);
-        // 2. Tutup menu notifikasi (opsional, tergantung UX)
-        // notificationHandleClose();
     };
 
     useEffect(() => {
-        // Ambil data produk dan order saat Navbar dimuat (jika belum dimuat)
         if (product.length === 0) fetchDataAPI();
         if (order.length === 0) fetchDataOrderAPI();
 
-        // 1. Cek kebutuhan supply
         const allAlerts = checkSupplyNeeds(product, getProductDemand);
-
-        // 2. Filter alerts, hanya tampilkan yang BELUM di-dismiss
         const filteredAlerts = allAlerts.filter(alert => !dismissedNotifications.includes(alert.id));
 
         setSmartNotifications(filteredAlerts);
     }, [product, order, getProductDemand, fetchDataAPI, fetchDataOrderAPI, dismissedNotifications]);
 
-    // 💡 Hitung total notifikasi yang BELUM di-dismiss
     const totalNotifications = smartNotifications.length;
 
-    // Fungsi Aksi (Supply Produk)
     const handleSupplyAction = productName => {
         alert(`Aksi Supply untuk produk ${productName} telah dipicu.`);
-        // Di sini Anda bisa memanggil handleDismissNotification jika supply berhasil
     };
 
     return (
@@ -117,7 +100,6 @@ export default function NavBarComponent() {
                                     alignItems: "center"
                                 }}
                             >
-                                {/* ... (Nav-left tetap sama) */}
                                 <div className="nav-left" style={{display: "flex", alignItems: "center"}}>
                                     <img
                                         src={Logo}
@@ -150,12 +132,7 @@ export default function NavBarComponent() {
                                     }}
                                 >
                                     <IconButton color="inherit">
-                                        <Badge
-                                            variant="dot"
-                                            color="error"
-                                            // Badge hilang jika totalNotifications adalah 0
-                                            invisible={totalNotifications === 0}
-                                        >
+                                        <Badge variant="dot" color="error" invisible={totalNotifications === 0}>
                                             <NotificationsOutlined
                                                 sx={{width: 32, height: 32}}
                                                 onClick={handleNotificationClicked}
@@ -175,7 +152,6 @@ export default function NavBarComponent() {
                                             }
                                         }}
                                     >
-                                        {/* 💡 Notifikasi Dinamis (Rekomendasi Supply) */}
                                         {smartNotifications.map(notification => (
                                             <Box key={notification.id}>
                                                 <MenuItem
@@ -197,7 +173,6 @@ export default function NavBarComponent() {
                                                         {notification.message}
                                                     </Typography>
                                                     <Box sx={{display: "flex", gap: 1}}>
-                                                        {/* 💡 TOMBOL KONFIRMASI (OK) */}
                                                         <Button
                                                             variant="outlined"
                                                             color="error"
@@ -220,7 +195,6 @@ export default function NavBarComponent() {
                                         {userInfo?.name || "User"} ({userInfo?.role?.toUpperCase() || "N/A"})
                                     </Typography>
                                 </Box>
-                                {/* ... (Menu profile tetap sama) */}
                             </Box>
                         </Container>
                     </AppBar>

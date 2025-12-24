@@ -12,9 +12,9 @@ const Landing = () => {
             <Link to="/login" className="landing-login-button">
                 Login
             </Link>
-            <Link to="/register" className="landing-register-button">
+            {/* <Link to="/register" className="landing-register-button">
                 Register
-            </Link>
+            </Link> */}
         </div>
     );
 };

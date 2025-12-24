@@ -1,13 +1,6 @@
 {
   "productList": [
     {
-      "id": "1",
-      "productName": "1",
-      "category": "1",
-      "stock": 1,
-      "quantityType": "kg"
-    },
-    {
       "id": "2",
       "productName": "2",
       "category": "2",
@@ -34,8 +27,82 @@
       "category": "5",
       "stock": 5,
       "quantityType": "kg"
+    },
+    {
+      "id": "b0a6",
+      "productName": "kocak",
+      "category": "kocak",
+      "stock": 10,
+      "quantityType": "meter",
+      "price": 0,
+      "hargaModal": 0
+    },
+    {
+      "id": "4683",
+      "productName": "7",
+      "category": "7",
+      "stock": 7,
+      "quantityType": "unit",
+      "price": 0,
+      "hargaModal": 0
+    },
+    {
+      "id": "71f2",
+      "productName": "8",
+      "category": "8",
+      "stock": 8,
+      "quantityType": "kg",
+      "price": 0,
+      "hargaModal": 0
+    },
+    {
+      "id": "84c5",
+      "productName": "PRODUK DESIMAL",
+      "category": "DESIMAL",
+      "stock": 9.5,
+      "quantityType": "meter"
+    },
+    {
+      "id": "2d71",
+      "productName": "PRODUCT DESIMAL JUGA",
+      "category": "DESIMAL",
+      "stock": 4.5,
+      "quantityType": "kg"
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "id": "c52f",
+      "customer": "ASEP",
+      "dateCreated": "2025-11-19T10:01:30.601Z",
+      "products": [
+        {
+          "productName": "PRODUK DESIMAL",
+          "productAmount": 0.4
+        },
+        {
+          "productName": "PRODUCT DESIMAL JUGA",
+          "productAmount": 0.5
+        }
+      ],
+      "status": "Pending"
+    },
+    {
+      "id": "ce3f",
+      "customer": "asep 2",
+      "dateCreated": "2025-11-19T10:01:49.365Z",
+      "products": [
+        {
+          "productName": "PRODUK DESIMAL",
+          "productAmount": 0.5
+        },
+        {
+          "productName": "PRODUCT DESIMAL JUGA",
+          "productAmount": 0.5
+        }
+      ],
+      "status": "Pending"
+    }
+  ],
   "transactionLog": []
 }

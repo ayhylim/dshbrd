@@ -10,7 +10,6 @@ const filterProductByRole = (product, role) => {
 
     switch (role) {
         case "warehouse":
-            // Warehouse: Lihat id, productName, category, stock, quantityType (❌ NO price, NO hargaModal)
             return {
                 id: productObj.id,
                 productName: productObj.productName,
@@ -20,11 +19,9 @@ const filterProductByRole = (product, role) => {
             };
 
         case "purchasing":
-            // Purchasing: Lihat semua fields termasuk price & hargaModal
             return productObj;
 
         case "marketing":
-            // Marketing: Lihat id, productName, category, price (hargaJual), stock
             return {
                 id: productObj.id,
                 productName: productObj.productName,
@@ -39,10 +36,29 @@ const filterProductByRole = (product, role) => {
     }
 };
 
+// 💡 HELPER: Validasi dan konversi number field ke float
+const validateFloatField = (value, fieldName) => {
+    if (value === undefined || value === null || value === "") {
+        return 0;
+    }
+
+    const numValue = parseFloat(value);
+
+    if (isNaN(numValue)) {
+        throw new Error(`${fieldName} harus berupa angka (integer atau desimal)`);
+    }
+
+    if (numValue < 0) {
+        throw new Error(`${fieldName} tidak boleh negatif`);
+    }
+
+    return numValue;
+};
+
 // GET all products dengan filtering berdasarkan role
 router.get("/", async (req, res) => {
     try {
-        const role = req.query.role || "marketing"; // Default: marketing (least access)
+        const role = req.query.role || "marketing";
         const products = await Product.find();
 
         const filteredProducts = products.map(product => filterProductByRole(product, role));
@@ -63,21 +79,23 @@ router.post("/", async (req, res) => {
             return res.status(403).json({error: "Only warehouse can create products"});
         }
 
-        // Warehouse hanya bisa input: id, productName, category, stock, quantityType
+        // 💡 Validasi dan konversi ke float
+        const stock = validateFloatField(req.body.stock, "Stock");
+
         const newProduct = await Product.create({
             id: req.body.id,
             productName: req.body.productName,
             category: req.body.category,
-            stock: req.body.stock,
+            stock: stock,
             quantityType: req.body.quantityType,
-            price: 0, // Default 0 (harga jual)
-            hargaModal: 0 // Default 0 (harga modal)
+            price: 0,
+            hargaModal: 0
         });
 
         res.status(201).json(filterProductByRole(newProduct, role));
     } catch (err) {
         console.error("Error creating product:", err);
-        res.status(500).json({error: "Error creating product"});
+        res.status(500).json({error: err.message || "Error creating product"});
     }
 });
 
@@ -95,14 +113,19 @@ router.put("/:id", async (req, res) => {
         if (role === "warehouse") {
             console.log(`🔧 Warehouse editing product ${req.params.id}`);
 
+            // 💡 Validasi stock jika ada input
+            let newStock = product.stock;
+            if (req.body.stock !== undefined) {
+                newStock = validateFloatField(req.body.stock, "Stock");
+            }
+
             const updated = await Product.findOneAndUpdate(
                 {id: req.params.id},
                 {
                     productName: req.body.productName !== undefined ? req.body.productName : product.productName,
                     category: req.body.category !== undefined ? req.body.category : product.category,
-                    stock: req.body.stock !== undefined ? req.body.stock : product.stock,
+                    stock: newStock,
                     quantityType: req.body.quantityType !== undefined ? req.body.quantityType : product.quantityType
-                    // 🚫 TIDAK boleh edit price & hargaModal
                 },
                 {new: true}
             );
@@ -110,27 +133,35 @@ router.put("/:id", async (req, res) => {
             return res.json(filterProductByRole(updated, role));
         }
 
-        // 🟢 PURCHASING: Bisa edit BOTH price (hargaJual) & hargaModal (preserve field lain)
+        // 🟢 PURCHASING: Bisa edit price & hargaModal
         if (role === "purchasing") {
             console.log(`💰 Purchasing setting harga for product ${req.params.id}`);
 
-            // 🟢 IMPORTANT: Explicit preserve ALL existing fields, only update price & hargaModal
+            // 💡 Validasi price dan hargaModal jika ada input
+            let newPrice = product.price;
+            let newHargaModal = product.hargaModal;
+
+            if (req.body.price !== undefined) {
+                newPrice = validateFloatField(req.body.price, "Price");
+            }
+            if (req.body.hargaModal !== undefined) {
+                newHargaModal = validateFloatField(req.body.hargaModal, "Harga Modal");
+            }
+
             const updated = await Product.findOneAndUpdate(
                 {id: req.params.id},
                 {
-                    productName: product.productName, // 🔴 FIX: Explicit preserve
-                    category: product.category, // 🔴 FIX: Explicit preserve
-                    stock: product.stock, // 🔴 FIX: Explicit preserve
-                    quantityType: product.quantityType, // 🔴 FIX: Explicit preserve
-                    price: req.body.price !== undefined ? req.body.price : product.price,
-                    hargaModal: req.body.hargaModal !== undefined ? req.body.hargaModal : product.hargaModal
+                    productName: product.productName,
+                    category: product.category,
+                    stock: product.stock,
+                    quantityType: product.quantityType,
+                    price: newPrice,
+                    hargaModal: newHargaModal
                 },
                 {new: true}
             );
 
             console.log("✅ Prices updated by purchasing, fields preserved:", updated);
-            // 🟢 IMPORTANT: Return FULL object untuk Purchasing (jangan filter)
-            // Karena frontend perlu semua data untuk display & state update
             return res.json(updated.toObject ? updated.toObject() : updated);
         }
 
@@ -142,7 +173,7 @@ router.put("/:id", async (req, res) => {
         return res.status(403).json({error: "Unauthorized role"});
     } catch (err) {
         console.error("Error updating product:", err);
-        res.status(500).json({error: "Error updating product"});
+        res.status(500).json({error: err.message || "Error updating product"});
     }
 });
 
