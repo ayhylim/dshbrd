@@ -20,7 +20,8 @@ import {
     MonetizationOnOutlined,
     CardTravelOutlined,
     TrendingUpOutlined,
-    PeopleAltOutlined
+    PeopleAltOutlined,
+    HistoryOutlined
 } from "@mui/icons-material";
 import {useLocation, useNavigate} from "react-router-dom";
 import {getRoleFromToken} from "../utils/getRoleFromToken";
@@ -64,6 +65,12 @@ export default function SideBarComponent() {
             component: <TrendingUpOutlined fontSize="medium" color="primary" />,
             path: "growth",
             roles: ["purchasing", "warehouse", "marketing", "developer"]
+        },
+        {
+            title: "Product History",
+            component: <HistoryOutlined fontSize="medium" color="primary" />,
+            path: "productHistory",
+            roles: ["warehouse", "purchasing", "developer"]
         },
         {
             title: "Settings",

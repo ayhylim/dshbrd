@@ -53,7 +53,7 @@ const useInputHandler = (product, setProduct) => {
 
 export default function AddProduct() {
     const [product, setProduct] = useState(initialValue);
-    const {onCreateProduct} = useContext(ProductContext);
+    const {onCreateProduct, onAddProductHistory, product: allProducts} = useContext(ProductContext);
     const userRole = getRoleFromToken();
 
     const handleInput = useInputHandler(product, setProduct);
@@ -108,8 +108,38 @@ export default function AddProduct() {
             stock: stockValue
         };
 
-        await onCreateProduct(finalProduct);
-        console.log(finalProduct);
+        try {
+            console.log("📝 Creating product:", finalProduct);
+            await onCreateProduct(finalProduct);
+
+            const createdProduct = allProducts[0];
+
+            if (!createdProduct) {
+                throw new Error("Produk tidak ditemukan setelah dibuat");
+            }
+
+            console.log("✅ Created product:", createdProduct);
+
+            // 💡 TAMBAH: Log ke product history
+            const historyData = {
+                productId: createdProduct.id,
+                productName: createdProduct.productName,
+                category: createdProduct.category,
+                stock: createdProduct.stock,
+                quantityType: createdProduct.quantityType,
+                addedBy: getRoleFromToken() || "system"
+            };
+
+            console.log("📋 Adding to history:", historyData);
+            await onAddProductHistory(historyData);
+
+            // Clear form
+            setProduct(initialValue);
+            alert("✅ Produk berhasil ditambahkan dan tercatat di history!");
+        } catch (error) {
+            console.error("❌ Error:", error);
+            alert(`❌ Terjadi kesalahan: ${error.message}`);
+        }
     };
 
     return (

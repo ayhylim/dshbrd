@@ -68,6 +68,13 @@
       "category": "DESIMAL",
       "stock": 4.5,
       "quantityType": "kg"
+    },
+    {
+      "id": "e10c",
+      "productName": "test history 1",
+      "category": "history1",
+      "stock": 10,
+      "quantityType": "unit"
     }
   ],
   "orders": [

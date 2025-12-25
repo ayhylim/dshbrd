@@ -93,3 +93,19 @@ export const createTransactionLog = async data => {
     const response = await axios.post("http://127.0.0.1:3001/transactionLog", data);
     return response;
 };
+
+// ============ PRODUCT HISTORY OPERATIONS ============
+
+export const fetchProductHistory = async () => {
+    const response = await axios.get("http://127.0.0.1:3001/productHistory");
+    return response.data;
+};
+
+export const addProductHistory = async data => {
+    const response = await axios.post("http://127.0.0.1:3001/productHistory", data);
+    return response;
+};
+
+export const deleteProductHistory = async id => {
+    await axios.delete(`http://127.0.0.1:3001/productHistory/${id}`);
+};

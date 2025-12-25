@@ -6,6 +6,7 @@ const cors = require("cors");
 const productRoutes = require("./routes/productList");
 const orderRoutes = require("./routes/orders");
 const transactionRoutes = require("./routes/transactionLog");
+const productHistoryRoutes = require("./routes/productHistory");
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,7 @@ app.use(cors());
 app.use("/productList", productRoutes);
 app.use("/orders", orderRoutes);
 app.use("/transactionLog", transactionRoutes);
+app.use("/productHistory", productHistoryRoutes);
 
 const port = process.env.PORT || 3000;
 

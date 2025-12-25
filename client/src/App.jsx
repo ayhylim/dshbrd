@@ -12,6 +12,7 @@ import Customer from "./components/bodyComponents/customer/Customer";
 import Revenue from "./components/bodyComponents/revenue/Revenue";
 import Growth from "./components/bodyComponents/growth/Growth";
 import Report from "./components/bodyComponents/report/Report";
+import ProductHistory from "./components/bodyComponents/productHistory/ProductHistory";
 import Setting from "./components/bodyComponents/Settings/Setting";
 import Order from "./components/bodyComponents/order/Order";
 import {Dashboard, HomeLayout, Landing, Login, Logout, Register} from "./pages";
@@ -115,7 +116,12 @@ function App() {
                     {/* INVENTORY - WAREHOUSE & PURCHASING */}
                     <Route
                         path="inventory"
-                        element={<ProtectedRoute element={<Inventory />} allowedRoles={["warehouse", "purchasing", "marketing", "developer"]} />}
+                        element={
+                            <ProtectedRoute
+                                element={<Inventory />}
+                                allowedRoles={["warehouse", "purchasing", "marketing", "developer"]}
+                            />
+                        }
                     />
 
                     {/* ORDERS - ALL ROLES */}
@@ -132,7 +138,12 @@ function App() {
                     {/* CUSTOMERS - MARKETING & PURCHASING */}
                     <Route
                         path="customers"
-                        element={<ProtectedRoute element={<Customer />} allowedRoles={["marketing", "warehouse", "developer"]} />}
+                        element={
+                            <ProtectedRoute
+                                element={<Customer />}
+                                allowedRoles={["marketing", "warehouse", "developer"]}
+                            />
+                        }
                     />
 
                     {/* GROWTH - ALL ROLES */}
@@ -141,6 +152,17 @@ function App() {
                         element={
                             <ProtectedRoute
                                 element={<Growth />}
+                                allowedRoles={["purchasing", "warehouse", "marketing", "developer"]}
+                            />
+                        }
+                    />
+
+                    {/* PRODUCT HISTORY  */}
+                    <Route
+                        path="productHistory"
+                        element={
+                            <ProtectedRoute
+                                element={<ProductHistory />}
                                 allowedRoles={["purchasing", "warehouse", "marketing", "developer"]}
                             />
                         }

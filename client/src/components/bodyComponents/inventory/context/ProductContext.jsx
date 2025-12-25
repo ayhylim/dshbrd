@@ -9,7 +9,10 @@ import {
     editOrderProduct,
     deleteOrderProduct,
     createTransactionLog,
-    fetchTransactionLog
+    fetchTransactionLog,
+    fetchProductHistory,
+    addProductHistory,
+    deleteProductHistory
 } from "../../../../api/api";
 import {getRoleFromToken} from "../../../../utils/getRoleFromToken";
 
@@ -20,6 +23,7 @@ function Provider({children}) {
     const [order, setOrder] = useState([]);
     const [transactionLog, setTransactionLog] = useState([]);
     const [customers, setCustomers] = useState([]);
+    const [productHistory, setProductHistory] = useState([]);
 
     // 🟢 GET ROLE FROM TOKEN
     const getUserRole = useCallback(() => {
@@ -534,6 +538,41 @@ function Provider({children}) {
         }
     };
 
+    // ============ PRODUCT HISTORY OPERATIONS ============
+
+    const fetchProductHistoryAPI = useCallback(async () => {
+        try {
+            const res = await fetchProductHistory();
+            setProductHistory(res);
+            console.log("✅ Product history loaded:", res);
+        } catch (error) {
+            console.error("Gagal mengambil product history:", error);
+        }
+    }, []);
+
+    const onAddProductHistory = useCallback(async historyData => {
+        try {
+            const res = await addProductHistory(historyData);
+            setProductHistory(prev => [res.data, ...prev]);
+            console.log("✅ History entry added:", res.data);
+            return res.data;
+        } catch (error) {
+            console.error("Gagal menambah history:", error);
+            throw error;
+        }
+    }, []);
+
+    const onDeleteProductHistory = useCallback(async id => {
+        try {
+            await deleteProductHistory(id);
+            setProductHistory(prev => prev.filter(h => h.id !== id));
+            console.log("✅ History deleted");
+        } catch (error) {
+            console.error("Gagal menghapus history:", error);
+            throw error;
+        }
+    }, []);
+
     // ============================================
     // CONTEXT VALUE
     // ============================================
@@ -568,7 +607,11 @@ function Provider({children}) {
         customers,
         setCustomers,
         // Role utility
-        getUserRole
+        getUserRole,
+        productHistory,
+        fetchProductHistoryAPI,
+        onAddProductHistory,
+        onDeleteProductHistory
     };
 
     return <ProductContext.Provider value={valueToShare}>{children}</ProductContext.Provider>;
