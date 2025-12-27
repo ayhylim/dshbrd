@@ -89,6 +89,20 @@
       "category": "tshstrty2",
       "stock": 10,
       "quantityType": "kg"
+    },
+    {
+      "id": "e988",
+      "productName": "someone heart(fr)",
+      "category": "organ",
+      "stock": 10,
+      "quantityType": "kg"
+    },
+    {
+      "id": "bafa",
+      "productName": "uhweh",
+      "category": "uhweh",
+      "stock": 982,
+      "quantityType": "pcs"
     }
   ],
   "orders": [
@@ -128,22 +142,12 @@
   "transactionLog": [],
   "productHistory": [
     {
-      "id": "c465",
+      "id": "26fa",
       "productId": "2",
       "productName": "2",
       "category": "2",
       "stock": 2,
-      "quantityType": "unit",
-      "addedBy": "warehouse"
-    },
-    {
-      "id": "0f63",
-      "productId": "2",
-      "productName": "2",
-      "category": "2",
-      "stock": 2,
-      "quantityType": "unit",
-      "addedBy": "warehouse"
+      "quantityType": "unit"
     }
   ]
 }

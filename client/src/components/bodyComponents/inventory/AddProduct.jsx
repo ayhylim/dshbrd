@@ -2,6 +2,8 @@ import {Box, Button, TextField, Stack, Typography, InputLabel, Select, FormContr
 import {useState, useContext, useCallback} from "react";
 import ProductContext from "./context/ProductContext";
 import {getRoleFromToken} from "../../../utils/getRoleFromToken";
+import {createProductHistory} from "../../../api/productHistoryApi";
+import axios from "axios";
 
 const initialValue = {
     productName: "",
@@ -10,29 +12,16 @@ const initialValue = {
     quantityType: ""
 };
 
-// 💡 HELPER: Format number dengan separator (tampilan saja, tidak mengubah value)
-const formatNumberDisplay = numberString => {
-    if (!numberString) return "";
-    const numValue = parseFloat(numberString);
-    if (isNaN(numValue)) return numberString;
-    return new Intl.NumberFormat("id-ID").format(numValue);
-};
-
 const useInputHandler = (product, setProduct) => {
     return useCallback(
         e => {
             const {name, value} = e.target;
 
             if (name === "stock") {
-                // 💡 UBAH: Terima angka desimal
-                // Hapus karakter non-numeric kecuali titik (.)
                 const rawValue = value.replace(/[^0-9.]/g, "");
-
-                // Validasi: hanya boleh 1 titik
                 const dotCount = (rawValue.match(/\./g) || []).length;
-                if (dotCount > 1) return; // Jangan update jika lebih dari 1 titik
+                if (dotCount > 1) return;
 
-                // Validasi: tidak boleh negatif
                 const numValue = parseFloat(rawValue);
                 if (!isNaN(numValue) && numValue < 0) return;
 
@@ -53,12 +42,11 @@ const useInputHandler = (product, setProduct) => {
 
 export default function AddProduct() {
     const [product, setProduct] = useState(initialValue);
-    const {onCreateProduct, onAddProductHistory, product: allProducts} = useContext(ProductContext);
+    const {onCreateProduct, product: allProducts} = useContext(ProductContext);
     const userRole = getRoleFromToken();
 
     const handleInput = useInputHandler(product, setProduct);
 
-    // 🟢 ONLY WAREHOUSE CAN CREATE
     if (userRole !== "warehouse") {
         return (
             <Box
@@ -96,7 +84,6 @@ export default function AddProduct() {
             return;
         }
 
-        // 💡 Validasi stock
         const stockValue = parseFloat(product.stock);
         if (isNaN(stockValue) || stockValue < 0) {
             alert("Stock harus berupa angka positif (integer atau desimal)");
@@ -112,6 +99,7 @@ export default function AddProduct() {
             console.log("📝 Creating product:", finalProduct);
             await onCreateProduct(finalProduct);
 
+            // 💡 Dapatkan product yang baru dibuat (ambil dari array - yang paling baru)
             const createdProduct = allProducts[0];
 
             if (!createdProduct) {
@@ -120,18 +108,19 @@ export default function AddProduct() {
 
             console.log("✅ Created product:", createdProduct);
 
-            // 💡 TAMBAH: Log ke product history
+            // 💡 Otomatis buat product history entry ke MongoDB production
             const historyData = {
                 productId: createdProduct.id,
                 productName: createdProduct.productName,
                 category: createdProduct.category,
                 stock: createdProduct.stock,
-                quantityType: createdProduct.quantityType,
-                addedBy: getRoleFromToken() || "system"
+                quantityType: createdProduct.quantityType
             };
 
-            console.log("📋 Adding to history:", historyData);
-            await onAddProductHistory(historyData);
+            console.log("📋 Sending to Product History:", historyData);
+            await createProductHistory(historyData);
+
+            console.log("✅ Product history created successfully");
 
             // Clear form
             setProduct(initialValue);

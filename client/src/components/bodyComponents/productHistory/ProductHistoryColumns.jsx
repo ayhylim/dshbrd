@@ -40,29 +40,20 @@ export const productHistoryColumns = [
         headerName: "Tanggal Penambahan",
         width: 200,
         renderCell: params => {
-            const date = new Date(params.row.dateAdded);
-            return (
-                <Typography variant="body2">
-                    {date.toLocaleString("id-ID", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false
-                    })}
-                </Typography>
-            );
+            try {
+                const date = new Date(params.row.dateAdded);
+                if (isNaN(date.getTime())) {
+                    return "Invalid Date";
+                }
+                // Format: DD/MM/YY
+                return date.toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit"
+                });
+            } catch (error) {
+                return "Invalid Date";
+            }
         }
-    },
-    {
-        field: "addedBy",
-        headerName: "Ditambah Oleh",
-        width: 130,
-        renderCell: params => (
-            <Typography variant="caption" sx={{textTransform: "uppercase"}}>
-                {params.row.addedBy}
-            </Typography>
-        )
     }
 ];

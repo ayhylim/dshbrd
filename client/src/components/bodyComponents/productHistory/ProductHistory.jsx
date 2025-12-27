@@ -3,27 +3,48 @@ import {Box, Typography, Button} from "@mui/material";
 import {DataGrid} from "@mui/x-data-grid";
 import ProductContext from "../inventory/context/ProductContext";
 import {productHistoryColumns} from "./productHistoryColumns";
+import axios from "axios";
 
 export default function ProductHistory() {
-    const {productHistory, fetchProductHistoryAPI, onDeleteProductHistory} = useContext(ProductContext);
+    const [productHistory, setProductHistory] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectionModels, setSelectionModels] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // 💡 Fetch product history dari MongoDB production
+    const fetchProductHistory = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get("http://127.0.0.1:3001/productHistory");
+            console.log("✅ Product history fetched:", response.data);
+            setProductHistory(response.data);
+        } catch (error) {
+            console.error("❌ Error fetching product history:", error);
+            alert("Gagal memuat data product history");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        fetchProductHistoryAPI();
-    }, [fetchProductHistoryAPI]);
+        fetchProductHistory();
+    }, []);
 
+    // Filter berdasarkan search query
     const filteredHistory = productHistory.filter(
         item =>
             item.productId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.productName?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // Tambah rowNumber untuk display
     const displayedHistory = filteredHistory.map((item, index) => ({
         ...item,
-        rowNumber: index + 1
+        rowNumber: index + 1,
+        id: item._id // Gunakan MongoDB _id sebagai unique identifier
     }));
 
+    // Handle delete
     const handleDelete = async () => {
         if (selectionModels.length === 0) {
             alert("Pilih history yang akan dihapus");
@@ -35,7 +56,14 @@ export default function ProductHistory() {
         }
 
         try {
-            await Promise.all(selectionModels.map(id => onDeleteProductHistory(id)));
+            // Dapatkan productId dari selected items
+            const selectedItems = productHistory.filter(item => selectionModels.includes(item._id));
+
+            await Promise.all(
+                selectedItems.map(item => axios.delete(`http://localhost:3000/api/v1/productHistory/${item.productId}`))
+            );
+
+            setProductHistory(prev => prev.filter(item => !selectionModels.includes(item._id)));
             setSelectionModels([]);
             alert("✅ History berhasil dihapus");
         } catch (err) {
@@ -43,6 +71,14 @@ export default function ProductHistory() {
             alert("❌ Gagal menghapus history");
         }
     };
+
+    if (loading) {
+        return (
+            <Box sx={{m: 0, p: 3, width: "100%"}}>
+                <Typography>Loading...</Typography>
+            </Box>
+        );
+    }
 
     return (
         <Box sx={{m: 0, p: 3, width: "100%"}}>
@@ -83,24 +119,30 @@ export default function ProductHistory() {
                 )}
 
                 {/* 📊 Data Grid */}
-                <DataGrid
-                    sx={{
-                        borderLeft: 0,
-                        borderRight: 0,
-                        borderRadius: 0,
-                        height: "35rem"
-                    }}
-                    rows={displayedHistory}
-                    columns={productHistoryColumns}
-                    getRowId={row => row.id}
-                    initialState={{
-                        pagination: {paginationModel: {page: 0, pageSize: 15}}
-                    }}
-                    pageSizeOptions={[10, 15, 20]}
-                    checkboxSelection
-                    onRowSelectionModelChange={setSelectionModels}
-                    rowSelectionModel={selectionModels}
-                />
+                {displayedHistory.length > 0 ? (
+                    <DataGrid
+                        sx={{
+                            borderLeft: 0,
+                            borderRight: 0,
+                            borderRadius: 0,
+                            height: "35rem"
+                        }}
+                        rows={displayedHistory}
+                        columns={productHistoryColumns}
+                        getRowId={row => row.id}
+                        initialState={{
+                            pagination: {paginationModel: {page: 0, pageSize: 15}}
+                        }}
+                        pageSizeOptions={[10, 15, 20]}
+                        checkboxSelection
+                        onRowSelectionModelChange={setSelectionModels}
+                        rowSelectionModel={selectionModels}
+                    />
+                ) : (
+                    <Typography sx={{py: 5, textAlign: "center"}} color="textSecondary">
+                        Belum ada data product history
+                    </Typography>
+                )}
             </Box>
         </Box>
     );
