@@ -75,6 +75,20 @@
       "category": "history1",
       "stock": 10,
       "quantityType": "unit"
+    },
+    {
+      "id": "0e00",
+      "productName": "test history 1",
+      "category": "history1",
+      "stock": 10,
+      "quantityType": "unit"
+    },
+    {
+      "id": "f7dd",
+      "productName": "tsthstry2",
+      "category": "tshstrty2",
+      "stock": 10,
+      "quantityType": "kg"
     }
   ],
   "orders": [
@@ -111,5 +125,25 @@
       "status": "Pending"
     }
   ],
-  "transactionLog": []
+  "transactionLog": [],
+  "productHistory": [
+    {
+      "id": "c465",
+      "productId": "2",
+      "productName": "2",
+      "category": "2",
+      "stock": 2,
+      "quantityType": "unit",
+      "addedBy": "warehouse"
+    },
+    {
+      "id": "0f63",
+      "productId": "2",
+      "productName": "2",
+      "category": "2",
+      "stock": 2,
+      "quantityType": "unit",
+      "addedBy": "warehouse"
+    }
+  ]
 }
